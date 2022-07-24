@@ -1,24 +1,35 @@
 # Maintainer: Alesh Slovak <aleshslovak@gmail.com>
 
-pkgname=frzr
-pkgver='0.10.3'
+pkgname=chimera
+pkgver='0.14.8'
 pkgrel='1'
-pkgdesc="A deployment and update system for read-only btrfs subvolume based operating systems"
+pkgdesc="Configure and manage games in Steam"
 arch=('any')
-url="https://github.com/gamer-os/frzr"
+url="https://github.com/MrCraigen/chimera"
 license=('MIT')
-depends=('btrfs-progs' 'syslinux' 'parted' 'libnewt' 'dosfstools' 'jq' 'util-linux')
-source=("${pkgname}::git+https://github.com/MrCraigen/frzr#branch=master")
+provides=('steam-tweaks' 'steam-buddy')
+conflicts=('steam-tweaks' 'steam-buddy')
+depends=('python' 'python-bottle' 'python-pyftpdlib' 'python-yaml' 'python-vdf' 'python-inotify-simple' 'python-requests' 'python-beaker' 'python-pygame' 'python-bcrypt' 'python-psutil' 'python-pyudev' 'python-leveldb' 'flatpak' 'xdotool' 'xorg-xprop' 'xorg-xwininfo' 'ponymix' 'legendary' 'ttf-dejavu' 'wyvern' 'innoextract' 'mesa-utils')
+optdepends=('srt-live-server' 'steam-removable-media-git') # compiling cores takes a long time, so make them optional
+source=("${pkgname}::git+https://github.com/MrCraigen/chimera#branch=master")
 md5sums=('SKIP')
 
+pkgver() {
+        cd "${srcdir}/${pkgname}"
+        git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g'
+}
+
+build() {
+        cd "${srcdir}/${pkgname}"
+        python setup.py build
+}
 package() {
-  mkdir -p "$pkgdir/usr/bin"
-  mkdir -p "$pkgdir/etc/systemd/system"
-  install -m 755 "$srcdir/frzr-$pkgver/frzr-bootstrap" "$pkgdir/usr/bin"
-  install -m 755 "$srcdir/frzr-$pkgver/frzr-deploy" "$pkgdir/usr/bin"
-  install -m 755 "$srcdir/frzr-$pkgver/__frzr-deploy" "$pkgdir/usr/bin"
-  install -m 755 "$srcdir/frzr-$pkgver/frzr-release" "$pkgdir/usr/bin"
-  install -m 755 "$srcdir/frzr-$pkgver/frzr-unlock" "$pkgdir/usr/bin"
-  install -m 644 "$srcdir/frzr-$pkgver/frzr-autoupdate.service" "$pkgdir/etc/systemd/system"
-  install -m 644 "$srcdir/frzr-$pkgver/frzr-autoupdate.timer" "$pkgdir/etc/systemd/system"
+        cd "${srcdir}/${pkgname}"
+        python setup.py install --root="$pkgdir" --prefix=/usr --skip-build
+        mkdir -p "$pkgdir/etc/systemd/system"
+        mkdir -p "$pkgdir/usr/lib/systemd/user"
+        install -m 644 "chimera.service" "$pkgdir/usr/lib/systemd/user/chimera.service"
+        install -m 644 "steam-patch.service" "$pkgdir/usr/lib/systemd/user/steam-patch.service"
+        install -m 644 "chimera-proxy.service" "$pkgdir/etc/systemd/system/chimera-proxy.service"
+        install -m 644 "chimera-proxy.socket" "$pkgdir/etc/systemd/system/chimera-proxy.socket"
 }
