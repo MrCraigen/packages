@@ -11,11 +11,6 @@ depends=('btrfs-progs' 'syslinux' 'parted' 'libnewt' 'dosfstools' 'jq' 'util-lin
 source=("${pkgname}::git+https://github.com/MrCraigen/frzr#branch=master")
 md5sums=('SKIP')
 
-pkgver() {
-    cd "${srcdir}/${pkgname}"
-    git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g'
-}
-
 package() {
   mkdir -p "$pkgdir/usr/bin"
   mkdir -p "$pkgdir/etc/systemd/system"
